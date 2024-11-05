@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Management</title>
+    <style>
+        /* General Styling */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f8;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        h2 {
+            color: #4a90e2;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        /* Form Card Styling */
+        .form-card {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin: 10px;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .form-card h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        input {
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            width: calc(100% - 22px);
+        }
+
+        button {
+            padding: 10px;
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #357ab8;
+        }
+
+        /* Fetch Button Styling */
+        .fetch-button {
+            background-color: #28a745;
+            margin-top: 20px;
+        }
+        
+        .fetch-button:hover {
+            background-color: #218838;
+        }
+
+        /* Student List Styling */
+        .student-list {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-top: 20px;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .student-list h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .student-item {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+    </style>
+</head>
+<body>
+    <h2>Student Management</h2>
+
+    <!-- Form to Add New Student -->
+    <div class="form-card">
+        <form id="add-student-form">
+            <h3>Add Student</h3>
+            <input type="text" id="name" placeholder="Name" required>
+            <input type="number" id="grade" placeholder="Grade" required>
+            <button type="submit">Add Student</button>
+        </form>
+    </div>
+
+    <!-- Form to Update Student -->
+    <div class="form-card">
+        <form id="update-student-form">
+            <h3>Update Student</h3>
+            <input type="number" id="update-id" placeholder="ID" required>
+            <input type="text" id="update-name" placeholder="New Name" required>
+            <input type="number" id="update-grade" placeholder="New Grade" required>
+            <button type="submit">Update Student</button>
+        </form>
+    </div>
+
+    <!-- Form to Delete Student -->
+    <div class="form-card">
+        <form id="delete-student-form">
+            <h3>Delete Student</h3>
+            <input type="number" id="delete-id" placeholder="ID" required>
+            <button type="submit">Delete Student</button>
+        </form>
+    </div>
+
+    <!-- Button to Fetch All Students -->
+    <button class="fetch-button" onclick="fetchStudents()">Fetch All Students</button>
+
+    <!-- Display Students -->
+    <div class="student-list" id="student-list"></div>
+
+    <script>
+        const apiUrl = "http://127.0.0.1:8000";
+
+        // Function to Fetch and Display All Students
+        async function fetchStudents() {
+            try {
+                const response = await fetch(`${apiUrl}/students/`);
+                const students = await response.json();
+                const studentList = document.getElementById('student-list');
+                studentList.innerHTML = "<h3>Student List</h3>";
+                students.forEach(student => {
+                    studentList.innerHTML += `
+                        <div class="student-item">
+                            <span>ID: ${student[0]}</span>
+                            <span>Name: ${student[1]}</span>
+                            <span>Grade: ${student[2]}</span>
+                        </div>`;
+                });
+            } catch (error) {
+                console.error("Failed to fetch students", error);
+            }
+        }
+
+        // Add New Student
+        document.getElementById('add-student-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('name').value;
+            const grade = parseInt(document.getElementById('grade').value);
+
+            try {
+                const response = await fetch(`${apiUrl}/students/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name, grade })
+                });
+                const result = await response.json();
+                alert(result.message || result.error);
+                fetchStudents();
+            } catch (error) {
+                console.error("Failed to add student", error);
+            }
+        });
+
+        // Update Student
+        document.getElementById('update-student-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = parseInt(document.getElementById('update-id').value);
+            const name = document.getElementById('update-name').value;
+            const grade = parseInt(document.getElementById('update-grade').value);
+
+            try {
+                const response = await fetch(`${apiUrl}/students/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ id, name, grade })
+                });
+                const result = await response.json();
+                alert(result.message || result.error);
+                fetchStudents();
+            } catch (error) {
+                console.error("Failed to update student", error);
+            }
+        });
+
+        // Delete Student
+        document.getElementById('delete-student-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = parseInt(document.getElementById('delete-id').value);
+
+            try {
+                const response = await fetch(`${apiUrl}/students/${id}`, {
+                    method: 'DELETE'
+                });
+                const result = await response.json();
+                alert(result.message || result.error);
+                fetchStudents();
+            } catch (error) {
+                console.error("Failed to delete student", error);
+            }
+        });
+    </script>
+</body>
+</html>
